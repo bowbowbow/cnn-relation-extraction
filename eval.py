@@ -5,8 +5,8 @@ import data_helpers
 from sklearn.metrics import f1_score
 import warnings
 import sklearn.exceptions
-warnings.filterwarnings("ignore", category=sklearn.exceptions.UndefinedMetricWarning)
 
+warnings.filterwarnings("ignore", category=sklearn.exceptions.UndefinedMetricWarning)
 
 # Parameters
 # ==================================================
@@ -18,16 +18,16 @@ tf.flags.DEFINE_string("target_dir", "result/answer.txt", "Path of target(answer
 
 # Eval Parameters
 tf.flags.DEFINE_integer("batch_size", 64, "Batch Size (Default: 64)")
-tf.flags.DEFINE_string("checkpoint_dir", "runs/1529172070/checkpoints", "Checkpoint directory from training run")
+tf.flags.DEFINE_string("checkpoint_dir", "runs/1529175602/checkpoints", "Checkpoint directory from training run")
 
 # Misc Parameters
 tf.flags.DEFINE_boolean("allow_soft_placement", True, "Allow device soft device placement")
 tf.flags.DEFINE_boolean("log_device_placement", False, "Log placement of ops on devices")
 
-
 FLAGS = tf.flags.FLAGS
 
 import sys
+
 FLAGS(sys.argv)
 print("\nParameters:")
 for attr, value in sorted(FLAGS.__flags.items()):
@@ -89,16 +89,18 @@ def eval():
                                                            dropout_keep_prob: 1.0})
                 all_predictions = np.concatenate([all_predictions, batch_predictions])
 
-            labelsMapping = {'country': 0,
-                             'team': 1,
-                             'starring': 2,
-                             'director': 3,
-                             'child': 4,
-                             'successor': 5,
+            labelsMapping = {0: 'country',
+                             1: 'team',
+                             2: 'starring',
+                             3: 'director',
+                             4: 'child',
+                             5: 'successor',
                              }
             output_file = open(FLAGS.output_dir, 'w')
             target_file = open(FLAGS.target_dir, 'w')
+            print('all_predictions :', all_predictions)
             for i in range(len(all_predictions)):
+                print('all_predictions[i] :', all_predictions[i])
                 output_file.write("{}\t{}\n".format(i, labelsMapping[all_predictions[i]]))
                 target_file.write("{}\t{}\n".format(i, labelsMapping[y_eval[i]]))
             output_file.close()
