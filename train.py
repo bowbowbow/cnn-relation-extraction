@@ -14,12 +14,12 @@ warnings.filterwarnings("ignore", category=sklearn.exceptions.UndefinedMetricWar
 # ==================================================
 
 # Data loading params
-tf.flags.DEFINE_string("train_dir", "SemEval2010_task8_all_data/SemEval2010_task8_training/TRAIN_FILE.TXT", "Path of train data")
+tf.flags.DEFINE_string("train_dir", "hw_data/ds_train.tsv", "Path of train data")
 tf.flags.DEFINE_float("dev_sample_percentage", .1, "Percentage of the training data to use for validation")
 tf.flags.DEFINE_integer("max_sentence_length", 100, "Max sentence length in train(98)/test(70) data (Default: 100)")
 
 # Model Hyperparameters
-tf.flags.DEFINE_string("word2vec", None, "Word2vec file with pre-trained embeddings")
+tf.flags.DEFINE_string("word2vec", "hw_data/kor-word2vec-hannanum-200.bin", "Word2vec file with pre-trained embeddings")
 tf.flags.DEFINE_integer("text_embedding_dim", 300, "Dimensionality of word embedding (Default: 300)")
 tf.flags.DEFINE_integer("position_embedding_dim", 100, "Dimensionality of position embedding (Default: 100)")
 tf.flags.DEFINE_string("filter_sizes", "2,3,4,5", "Comma-separated filter sizes (Default: 2,3,4,5)")
@@ -52,7 +52,7 @@ print("")
 
 def train():
     with tf.device('/cpu:0'):
-        x_text, pos1, pos2, y = data_helpers.load_data_and_labels(FLAGS.train_dir)
+        x_text, pos1, pos2, y = data_helpers.load_hw_data_and_labels(FLAGS.train_dir)
 
     # Build vocabulary
     # Example: x_text[3] = "A misty <e1>ridge</e1> uprises from the <e2>surge</e2>."
