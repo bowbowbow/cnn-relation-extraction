@@ -29,7 +29,7 @@ tf.flags.DEFINE_float("l2_reg_lambda", 3.0, "L2 regularization lambda (Default: 
 
 # Training parameters
 tf.flags.DEFINE_integer("batch_size", 64, "Batch Size (Default: 64)")
-tf.flags.DEFINE_integer("num_epochs", 100, "Number of training epochs (Default: 100)")
+tf.flags.DEFINE_integer("num_epochs", 10, "Number of training epochs (Default: 100)")
 tf.flags.DEFINE_integer("display_every", 10, "Number of iterations to display training info.")
 tf.flags.DEFINE_integer("evaluate_every", 100, "Evaluate model on dev set after this many steps")
 tf.flags.DEFINE_integer("checkpoint_every", 100, "Save model after this many steps")
@@ -150,31 +150,31 @@ def train():
             sess.run(tf.global_variables_initializer())
 
             # Pre-trained word2vec
-            if FLAGS.word2vec:
-                # initial matrix with random uniform
-                initW = np.random.uniform(-0.25, 0.25, (len(text_vocab_processor.vocabulary_), FLAGS.text_embedding_dim))
-                # load any vectors from the word2vec
-                print("Load word2vec file {0}".format(FLAGS.word2vec))
-                with open(FLAGS.word2vec, "rb") as f:
-                    header = f.readline()
-                    vocab_size, layer1_size = map(int, header.split())
-                    binary_len = np.dtype('float32').itemsize * layer1_size
-                    for line in range(vocab_size):
-                        word = []
-                        while True:
-                            ch = f.read(1).decode('latin-1')
-                            if ch == ' ':
-                                word = ''.join(word)
-                                break
-                            if ch != '\n':
-                                word.append(ch)
-                        idx = text_vocab_processor.vocabulary_.get(word)
-                        if idx != 0:
-                            initW[idx] = np.fromstring(f.read(binary_len), dtype='float32')
-                        else:
-                            f.read(binary_len)
-                sess.run(cnn.W_text.assign(initW))
-                print("Success to load pre-trained word2vec model!\n")
+            # if FLAGS.word2vec:
+            #     # initial matrix with random uniform
+            #     initW = np.random.uniform(-0.25, 0.25, (len(text_vocab_processor.vocabulary_), FLAGS.text_embedding_dim))
+            #     # load any vectors from the word2vec
+            #     print("Load word2vec file {0}".format(FLAGS.word2vec))
+            #     with open(FLAGS.word2vec, "rb") as f:
+            #         header = f.readline()
+            #         vocab_size, layer1_size = map(int, header.split())
+            #         binary_len = np.dtype('float32').itemsize * layer1_size
+            #         for line in range(vocab_size):
+            #             word = []
+            #             while True:
+            #                 ch = f.read(1).decode('latin-1')
+            #                 if ch == ' ':
+            #                     word = ''.join(word)
+            #                     break
+            #                 if ch != '\n':
+            #                     word.append(ch)
+            #             idx = text_vocab_processor.vocabulary_.get(word)
+            #             if idx != 0:
+            #                 initW[idx] = np.fromstring(f.read(binary_len), dtype='float32')
+            #             else:
+            #                 f.read(binary_len)
+            #     sess.run(cnn.W_text.assign(initW))
+            #     print("Success to load pre-trained word2vec model!\n")
 
             # Generate batches
             batches = data_helpers.batch_iter(
