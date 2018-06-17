@@ -58,13 +58,16 @@ class Crawler {
 }
 
 function findSentence(paragraphs, sbj, obj) {
+  const SBJ = sbj.split('_').join(' ');
+  const OBJ = obj.split('_').join(' ');
+  
   for (let j = 0; j < paragraphs.length; j++) {
     const paragraph = paragraphs[j].split('\n').join('');
     const sentences = paragraph.split('.');
     
     for (let k = 0; k < sentences.length; k++) {
-      if (sentences[k].indexOf(sbj) >= 0 && sentences[k].indexOf(obj) >= 0) {
-        return sentences[k] + '.';
+      if (sentences[k].indexOf(SBJ) >= 0 && sentences[k].indexOf(OBJ) >= 0) {
+        return sentences[k].replace(SBJ, ' << _sbj_ >> ').replace(OBJ, ' << _obj_ >> ');
       }
     }
   }
@@ -84,7 +87,10 @@ async function run() {
     const relation = cols[1];
     let sentence = cols[3];
     
-    if (sentence !== EMPTY) continue;
+    if (sentence !== EMPTY) {
+      console.log('pass');
+      continue;
+    }
     const paragraphsSbj = await new Crawler().getWikiParagraphs(sbj);
     const paragraphsObj = await new Crawler().getWikiParagraphs(obj);
     
@@ -97,7 +103,12 @@ async function run() {
     }
     
     if (sentence !== EMPTY) {
-      console.log('found :', sentence);
+      cols[3] = sentence + EMPTY;
+      const newLine = cols.join('\t');
+      console.log('found :', newLine);
+      
+      lines[i] = newLine;
+      await fs.writeFile('triples.nt', lines.join('\n'));
     } else {
       console.log('not found', cols);
     }
