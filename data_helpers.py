@@ -25,74 +25,6 @@ def clean_str(string):
     string = re.sub(r"\s{2,}", " ", string)
     return string.strip().lower()
 
-
-def load_data_and_labels(path):
-    data = []
-    lines = [line.strip() for line in open(path)]
-    for idx in range(0, len(lines), 4):
-        id = lines[idx].split("\t")[0]
-        relation = lines[idx + 1]
-
-        sentence = lines[idx].split("\t")[1][1:-1]
-        sentence = sentence.replace("<e1>", " _e1_ ").replace("</e1>", " _/e1_ ")
-        sentence = sentence.replace("<e2>", " _e2_ ").replace("</e2>", " _/e2_ ")
-
-        tokens = nltk.word_tokenize(sentence)
-
-        tokens.remove('_/e1_')
-        tokens.remove('_/e2_')
-
-        e1 = tokens.index("_e1_")
-        del tokens[e1]
-        e2 = tokens.index("_e2_")
-        del tokens[e2]
-
-        sentence = " ".join(tokens)
-        sentence = clean_str(sentence)
-
-        data.append([id, sentence, e1, e2, relation])
-
-    df = pd.DataFrame(data=data, columns=["id", "sentence", "e1_pos", "e2_pos", "relation"])
-    labelsMapping = {'Other': 0,
-                     'Message-Topic(e1,e2)': 1, 'Message-Topic(e2,e1)': 2,
-                     'Product-Producer(e1,e2)': 3, 'Product-Producer(e2,e1)': 4,
-                     'Instrument-Agency(e1,e2)': 5, 'Instrument-Agency(e2,e1)': 6,
-                     'Entity-Destination(e1,e2)': 7, 'Entity-Destination(e2,e1)': 8,
-                     'Cause-Effect(e1,e2)': 9, 'Cause-Effect(e2,e1)': 10,
-                     'Component-Whole(e1,e2)': 11, 'Component-Whole(e2,e1)': 12,
-                     'Entity-Origin(e1,e2)': 13, 'Entity-Origin(e2,e1)': 14,
-                     'Member-Collection(e1,e2)': 15, 'Member-Collection(e2,e1)': 16,
-                     'Content-Container(e1,e2)': 17, 'Content-Container(e2,e1)': 18}
-    df['label'] = [labelsMapping[r] for r in df['relation']]
-
-    x_text = df['sentence'].tolist()
-
-    pos1, pos2 = get_relative_position(df)
-
-    # Label Data
-    y = df['label']
-    labels_flat = y.values.ravel()
-
-    labels_count = np.unique(labels_flat).shape[0]
-
-    # convert class labels from scalars to one-hot vectors
-    # 0  => [1 0 0 0 0 ... 0 0 0 0 0]
-    # 1  => [0 1 0 0 0 ... 0 0 0 0 0]
-    # ...
-    # 18 => [0 0 0 0 0 ... 0 0 0 0 1]
-    def dense_to_one_hot(labels_dense, num_classes):
-        num_labels = labels_dense.shape[0]
-        index_offset = np.arange(num_labels) * num_classes
-        labels_one_hot = np.zeros((num_labels, num_classes))
-        labels_one_hot.flat[index_offset + labels_dense.ravel()] = 1
-        return labels_one_hot
-
-    labels = dense_to_one_hot(labels_flat, labels_count)
-    labels = labels.astype(np.uint8)
-
-    return x_text, pos1, pos2, labels
-
-
 def load_hw_data_and_labels(path):
     data = []
 
@@ -149,7 +81,6 @@ def load_hw_data_and_labels(path):
     labels = labels.astype(np.uint8)
 
     return x_text, pos1, pos2, labels
-
 
 def get_relative_position(df, max_sentence_length=100):
     # Position data
