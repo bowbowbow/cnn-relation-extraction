@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 import os
 import data_helpers
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, precision_score, recall_score, roc_curve
 import warnings
 import sklearn.exceptions
 
@@ -14,7 +14,7 @@ warnings.filterwarnings("ignore", category=sklearn.exceptions.UndefinedMetricWar
 # Data loading params
 tf.flags.DEFINE_string("eval_dir", "hw_data/gold_test.tsv", "Path of evaluation data")
 tf.flags.DEFINE_string("output_dir", "hw_data/prediction.txt", "Path of prediction for evaluation data")
-tf.flags.DEFINE_string("target_dir", "result/answer.txt", "Path of target(answer) file for evaluation data")
+tf.flags.DEFINE_string("target_dir", "hw_data/gold_test.txt", "Path of target(answer) file for evaluation data")
 
 # Eval Parameters
 tf.flags.DEFINE_integer("batch_size", 64, "Batch Size (Default: 64)")
@@ -100,7 +100,7 @@ def eval():
             target_file = open(FLAGS.target_dir, 'w')
             print('all_predictions :', all_predictions)
             for i in range(len(all_predictions)):
-                print('all_predictions[i] :', all_predictions[i])
+                # print('all_predictions[i] :', all_predictions[i])
                 output_file.write("{}\t{}\n".format(i, labelsMapping[all_predictions[i]]))
                 target_file.write("{}\t{}\n".format(i, labelsMapping[y_eval[i]]))
             output_file.close()
@@ -110,7 +110,12 @@ def eval():
             print("\nTotal number of test examples: {}".format(len(y_eval)))
             print("Accuracy: {:g}".format(correct_predictions / float(len(y_eval))))
             print("(2*9+1)-Way Macro-Average F1 Score (excluding Other): {:g}".format(
-                f1_score(y_eval, all_predictions, labels=np.array(range(1, 19)), average="macro")))
+                f1_score(y_eval, all_predictions, labels=np.array(range(0, 6)), average="macro")))
+
+            print('precision ', precision_score(y_eval, all_predictions, labels=np.array(range(0, 6)), average="macro"))
+            print('recall ', recall_score(y_eval, all_predictions, labels=np.array(range(0, 6)), average="macro"))
+            # print('roc ', roc_curve(y_eval, all_predictions, labels=np.array(range(1, 19)), average="macro"))
+
 
 
 def main(_):
