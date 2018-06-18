@@ -49,8 +49,13 @@ class Crawler {
           console.log(err);
           reject(err);
         }
+      }, () => {
+        // status 404가 오는 경우 있음
+        console.log('404!');
+        resolve([])
       })
       .catch((err) => {
+        console.log('getDollar error :', err);
         reject(err);
       })
     });
@@ -78,7 +83,7 @@ async function run() {
   const data = await fs.readFile('triples.nt', 'utf8');
   const lines = data.split('\n');
   
-  for (let i = 0; i < lines.length; i++) {
+  for (let i = 265; i < lines.length; i++) {
     console.log(`progress ${i + 1}/${lines.length}(${((i + 1) / lines.length * 100).toFixed(2)}%)`);
     const cols = lines[i].split('\t');
     
@@ -91,26 +96,30 @@ async function run() {
       console.log('pass');
       continue;
     }
-    const paragraphsSbj = await new Crawler().getWikiParagraphs(sbj);
-    const paragraphsObj = await new Crawler().getWikiParagraphs(obj);
+    try {
+      const paragraphsSbj = await new Crawler().getWikiParagraphs(sbj);
+  
+      let tmp = findSentence(paragraphsSbj, sbj, obj);
+      if (tmp) {
+        sentence = tmp;
+      } else {
+        const paragraphsObj = await new Crawler().getWikiParagraphs(obj);
+        tmp = findSentence(paragraphsObj, sbj, obj);
+        if (tmp) sentence = tmp;
+      }
+  
+      if (sentence !== EMPTY) {
+        cols[3] = sentence + EMPTY;
+        const newLine = cols.join('\t');
+        console.log('found :', newLine);
     
-    let tmp = findSentence(paragraphsSbj, sbj, obj);
-    if (tmp) {
-      sentence = tmp;
-    } else {
-      tmp = findSentence(paragraphsObj, sbj, obj);
-      if (tmp) sentence = tmp;
-    }
-    
-    if (sentence !== EMPTY) {
-      cols[3] = sentence + EMPTY;
-      const newLine = cols.join('\t');
-      console.log('found :', newLine);
-      
-      lines[i] = newLine;
-      await fs.writeFile('triples.nt', lines.join('\n'));
-    } else {
-      console.log('not found', cols);
+        lines[i] = newLine;
+        await fs.writeFile('triples.nt', lines.join('\n'));
+      } else {
+        console.log('not found', cols);
+      }
+    } catch (e) {
+      console.log('error at :', i);
     }
   }
 }
