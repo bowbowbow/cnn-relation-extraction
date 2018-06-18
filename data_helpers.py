@@ -37,10 +37,16 @@ def load_hw_data_and_labels(path):
         sentence = sentence.replace(" << _obj_ >> ", " _obj_ ")
 
         tokens = nltk.word_tokenize(sentence)
-        e1 = tokens.index("_sbj_")
-        tokens[e1] = sbj
-        e2 = tokens.index("_obj_")
-        tokens[e2] = obj
+
+        try:
+            e1 = tokens.index("_sbj_")
+            tokens[e1] = sbj
+            e2 = tokens.index("_obj_")
+            tokens[e2] = obj
+        except Exception as e:
+            print(sentence)
+            print(e)
+            continue
 
         sentence = " ".join(tokens)
         # sentence = clean_str(sentence)
